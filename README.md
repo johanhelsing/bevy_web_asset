@@ -3,6 +3,8 @@
 This is a tiny crate that that wraps the standard bevy asset loader, and adds
 the ability to load assets from http and https urls.
 
+Supports both wasm (web-sys) and native.
+
 If asset paths start with http:// or https://, then we try to do a web request
 to load the asset, otherwise, we just call the normal asset io.
 
@@ -14,6 +16,7 @@ native games. Use cases can be:
 - Downloading dynamic content from 3rd party services (lospec, gltf repositories etc.)
 - Sharing user-created assets/mods over some service (level editor etc.)
 - Keeping initial download size small
+- Testing with different online assets during development
 
 ## Usage
 
