@@ -2,7 +2,21 @@
 name = "bevy_web_asset"
 version = "0.1.0"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Johan Helsing <johanhelsing@gmail.com>"]
+description = "Bevy asset loader that supports from http and https paths"
+license = "MIT OR Apache-2.0"
+keywords = ["gamedev", "networking", "wasm"]
+categories = ["network-programming", "game-development", "wasm", "web-programming"]
+readme = "README.md"
 
 [dependencies]
+bevy = { version = "0.5", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+surf = { version = "2.3", default-features = false, features = ["h1-client-rustls"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2", default-features = false }
+wasm-bindgen-futures = "0.4"
+js-sys = { version = "0.3", default-features = false }
+web-sys = { version = "0.3.22", default-features = false }
