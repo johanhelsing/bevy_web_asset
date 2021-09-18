@@ -6,9 +6,13 @@ pub struct WebAssetIo {
     pub(crate) default_io: Box<dyn AssetIo>,
 }
 
+fn is_http(path: &Path) -> bool {
+    path.starts_with("http://") || path.starts_with("https://")
+}
+
 impl AssetIo for WebAssetIo {
     fn load_path<'a>(&'a self, path: &'a Path) -> BoxedFuture<'a, Result<Vec<u8>, AssetIoError>> {
-        if path.starts_with("http://") || path.starts_with("https://") {
+        if is_http(path) {
             let uri = path.to_str().unwrap();
 
             #[cfg(target_arch = "wasm32")]
@@ -49,14 +53,24 @@ impl AssetIo for WebAssetIo {
     }
 
     fn watch_path_for_changes(&self, path: &Path) -> Result<(), AssetIoError> {
-        self.default_io.watch_path_for_changes(path)
+        if is_http(path) {
+            Ok(()) // Pretend everything is fine
+        } else {
+            self.default_io.watch_path_for_changes(path)
+        }
     }
 
     fn watch_for_changes(&self) -> Result<(), AssetIoError> {
+        // TODO: we could potentially start polling over http here
+        // but should probably only be done if the server supports caching
         self.default_io.watch_for_changes()
     }
 
     fn is_directory(&self, path: &Path) -> bool {
-        self.default_io.is_directory(path)
+        if is_http(path) {
+            false
+        } else {
+            self.default_io.is_directory(path)
+        }
     }
 }
