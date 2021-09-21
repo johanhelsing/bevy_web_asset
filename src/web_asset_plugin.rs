@@ -8,7 +8,7 @@ use super::WebAssetIo;
 ///
 /// ```
 /// # use bevy::prelude::*;
-/// let mut app = App::build();
+/// let mut app = App::new();
 /// app.add_plugins_with(DefaultPlugins, |group| {
 ///    // The web asset plugin must be inserted in-between the
 ///    // `CorePlugin' and `AssetPlugin`. It needs to be after the
@@ -24,9 +24,9 @@ use super::WebAssetIo;
 pub struct WebAssetPlugin;
 
 impl Plugin for WebAssetPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         let task_pool = app
-            .world()
+            .world
             .get_resource::<IoTaskPool>()
             .expect("IoTaskPool resource not found")
             .0
