@@ -40,3 +40,16 @@ But using it is quite simple, just use http urls instead of regular asset paths.
 ```rust
 let font: Handle<Font> = asset_server.load("https://example.com/fonts/quicksand-light.ttf");
 ```
+
+# Bevy version support
+
+I intend to support the latest bevy release in the `main` branch.
+
+Fixes against the Bevy `main` branch goes in the the `bevy-main` branch and are
+merged back into `main` whenever bevy is released.
+
+|bevy|bevy_web_asset|
+|---|---|
+|main|bevy-main|
+|0.6|0.2, main|
+|0.5|0.1|
