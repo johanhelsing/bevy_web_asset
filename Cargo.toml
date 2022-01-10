@@ -1,6 +1,6 @@
 [package]
 name = "bevy_web_asset"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Johan Helsing <johanhelsing@gmail.com>"]
 description = "Bevy asset loader that transparently supports loading over http(s)"
