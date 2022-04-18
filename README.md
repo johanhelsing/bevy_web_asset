@@ -56,5 +56,6 @@ merged back into `main` whenever bevy is released.
 |bevy|bevy_web_asset|
 |---|---|
 |main|bevy-main|
-|0.6|0.2, main|
+|0.7|0.3, main|
+|0.6|0.2|
 |0.5|0.1|
