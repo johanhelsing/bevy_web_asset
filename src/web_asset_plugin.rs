@@ -1,4 +1,4 @@
-use bevy::{prelude::*, tasks::IoTaskPool};
+use bevy::{asset::AssetServerSettings, prelude::*, tasks::IoTaskPool};
 
 use super::WebAssetIo;
 
@@ -25,6 +25,17 @@ pub struct WebAssetPlugin;
 
 impl Plugin for WebAssetPlugin {
     fn build(&self, app: &mut App) {
+        // If configured by inserting the AssetServerSettingsResource
+        let watch_for_changes_configured = app
+            .world
+            .get_resource::<AssetServerSettings>()
+            .map(|s| s.watch_for_changes)
+            .unwrap_or(false);
+
+        if watch_for_changes_configured {
+            warn!("bevy_web_asset currently breaks regular filesystem hot reloading, see https://github.com/johanhelsing/bevy_web_asset/issues/1");
+        }
+
         let task_pool = app
             .world
             .get_resource::<IoTaskPool>()
