@@ -1,4 +1,4 @@
-use bevy::{asset::AssetServerSettings, prelude::*, tasks::IoTaskPool};
+use bevy::{asset::AssetServerSettings, prelude::*};
 
 use super::WebAssetIo;
 
@@ -36,18 +36,11 @@ impl Plugin for WebAssetPlugin {
             warn!("bevy_web_asset currently breaks regular filesystem hot reloading, see https://github.com/johanhelsing/bevy_web_asset/issues/1");
         }
 
-        let task_pool = app
-            .world
-            .get_resource::<IoTaskPool>()
-            .expect("IoTaskPool resource not found")
-            .0
-            .clone();
-
         let asset_io = {
             let default_io = bevy::asset::create_platform_default_asset_io(app);
             WebAssetIo { default_io }
         };
 
-        app.insert_resource(AssetServer::new(asset_io, task_pool));
+        app.insert_resource(AssetServer::new(asset_io));
     }
 }
