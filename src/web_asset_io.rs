@@ -70,11 +70,15 @@ impl AssetIo for WebAssetIo {
         self.default_io.watch_for_changes()
     }
 
-    fn is_directory(&self, path: &Path) -> bool {
+    fn is_dir(&self, path: &Path) -> bool {
         if is_http(path) {
             false
         } else {
-            self.default_io.is_directory(path)
+            self.default_io.is_dir(path)
         }
+    }
+
+    fn get_metadata(&self, path: &Path) -> Result<bevy::asset::Metadata, AssetIoError> {
+        self.default_io.get_metadata(path)
     }
 }

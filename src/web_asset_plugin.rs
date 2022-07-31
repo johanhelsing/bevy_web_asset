@@ -1,24 +1,24 @@
-use bevy::{asset::AssetServerSettings, prelude::*, tasks::IoTaskPool};
+use bevy::{asset::AssetServerSettings, prelude::*};
 
 use super::WebAssetIo;
 
 /// Add this plugin to bevy to support loading http and https urls.
 ///
+/// Needs to be added before Bevy's `DefaultPlugins`.
+///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// # use bevy::prelude::*;
+/// # use bevy_web_asset::WebAssetPlugin;
+///
 /// let mut app = App::new();
-/// app.add_plugins_with(DefaultPlugins, |group| {
-///    // The web asset plugin must be inserted in-between the
-///    // `CorePlugin' and `AssetPlugin`. It needs to be after the
-///    // CorePlugin, so that the IO task pool has already been constructed.
-///    // And it must be before the `AssetPlugin` so that the asset plugin
-///    // doesn't create another instance of an assert server. In general,
-///    // the AssetPlugin should still run so that other aspects of the
-///    // asset system are initialized correctly.
-///    group.add_before::<bevy::asset::AssetPlugin, _>(bevy_web_asset::WebAssetPlugin)
-/// });
+///     // The web asset plugin must be inserted before the `AssetPlugin` so
+///     // that the asset plugin doesn't create another instance of an asset
+///     // server. In general, the AssetPlugin should still run so that other
+///     // aspects of the asset system are initialized correctly.
+/// app.add_plugin(WebAssetPlugin);
+/// app.add_plugins(DefaultPlugins);
 /// ```
 ///});
 pub struct WebAssetPlugin;
@@ -36,18 +36,11 @@ impl Plugin for WebAssetPlugin {
             warn!("bevy_web_asset currently breaks regular filesystem hot reloading, see https://github.com/johanhelsing/bevy_web_asset/issues/1");
         }
 
-        let task_pool = app
-            .world
-            .get_resource::<IoTaskPool>()
-            .expect("IoTaskPool resource not found")
-            .0
-            .clone();
-
         let asset_io = {
             let default_io = bevy::asset::create_platform_default_asset_io(app);
             WebAssetIo { default_io }
         };
 
-        app.insert_resource(AssetServer::new(asset_io, task_pool));
+        app.insert_resource(AssetServer::new(asset_io));
     }
 }
