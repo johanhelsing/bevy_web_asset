@@ -8,7 +8,7 @@ use super::WebAssetIo;
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// # use bevy::prelude::*;
 /// # use bevy_web_asset::WebAssetPlugin;
 ///
