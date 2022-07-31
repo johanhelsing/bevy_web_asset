@@ -19,3 +19,11 @@ js-sys = {version = "0.3", default-features = false}
 wasm-bindgen = {version = "0.2", default-features = false}
 wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3.22", default-features = false}
+
+[dev-dependencies]
+bevy = {version = "0.8", default-features = false, features = [
+  "bevy_asset",
+  "png",
+  "render",
+  "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
+]}
