@@ -25,18 +25,18 @@ native games. Use cases can be:
 
 ## Usage
 
-Adding the plugin is little bit tricky:
+NOTE: You need to add the plugin before `DefaultPlugins`:
 
 ```rust
-.add_plugins_with(DefaultPlugins, |group| {
-    // The web asset plugin must be inserted in-between the
-    // `CorePlugin' and `AssetPlugin`. It needs to be after the
-    // CorePlugin, so that the IO task pool has already been constructed.
-    // And it must be before the `AssetPlugin` so that the asset plugin
-    // doesn't create another instance of an assert server. In general,
-    // the AssetPlugin should still run so that other aspects of the
-    // asset system are initialized correctly.
-    group.add_before::<bevy::asset::AssetPlugin, _>(WebAssetPlugin)
+App::new()
+    // The web asset plugin must be inserted before the `AssetPlugin` so
+    // that the asset plugin doesn't create another instance of an asset
+    // server. In general, the AssetPlugin should still run so that other
+    // aspects of the asset system are initialized correctly.
+    .add_plugin(WebAssetPlugin)
+    .add_plugins(DefaultPlugins)
+    .add_startup_system(setup)
+    .run();
 });
 ```
 
@@ -44,6 +44,16 @@ But using it is quite simple, just use http urls instead of regular asset paths.
 
 ```rust
 let font: Handle<Font> = asset_server.load("https://example.com/fonts/quicksand-light.ttf");
+```
+
+Or:
+
+```rust
+commands.spawn_bundle(SpriteBundle {
+    // Simply use a url where you would normally use an asset folder relative path
+    texture: asset_server.load("https://johanhelsing.studio/assets/favicon.png"),
+    ..default()
+});
 ```
 
 # Bevy version support
