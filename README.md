@@ -27,6 +27,8 @@ native games. Use cases can be:
 
 NOTE: You need to add the plugin before `DefaultPlugins`:
 
+Bevy 0.7 users, see [0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
+
 ```rust
 App::new()
     // The web asset plugin must be inserted before the `AssetPlugin` so
