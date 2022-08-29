@@ -6,6 +6,7 @@ edition = "2021"
 keywords = ["gamedev", "networking", "wasm", "bevy"]
 license = "MIT OR Apache-2.0"
 name = "bevy_web_asset"
+repository = "https://github.com/johanhelsing/bevy_web_asset"
 version = "0.4.0"
 
 [dependencies]
