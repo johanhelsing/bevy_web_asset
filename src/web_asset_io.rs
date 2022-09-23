@@ -23,10 +23,23 @@ impl AssetIo for WebAssetIo {
                 use wasm_bindgen::JsCast;
                 use wasm_bindgen_futures::JsFuture;
                 let window = web_sys::window().unwrap();
-                let resp_value = JsFuture::from(window.fetch_with_str(uri)).await.unwrap();
-                let resp: web_sys::Response = resp_value.dyn_into().unwrap();
-                let data = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
+                let response = JsFuture::from(window.fetch_with_str(uri))
+                    .await
+                    .map(|r| r.dyn_into::<web_sys::Response>().unwrap())
+                    .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
+
+                if let Err(err) = &response {
+                    warn!("Failed to fetch asset {uri}: {err:?}");
+                }
+
+                let response = response.map_err(|_| AssetIoError::NotFound(path.to_path_buf()))?;
+
+                let data = JsFuture::from(response.array_buffer().unwrap())
+                    .await
+                    .unwrap();
+
                 let bytes = js_sys::Uint8Array::new(&data).to_vec();
+
                 Ok(bytes)
             });
 
