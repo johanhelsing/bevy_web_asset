@@ -18,7 +18,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn_bundle(SpriteBundle {
         // Simply use a url where you would normally use an asset folder relative path
-        texture: asset_server.load("https://johanhelsing.studio/assets/favicon.png"),
+        texture: asset_server.load("https://s3.johanhelsing.studio/dump/favicon.png"),
         ..default()
     });
 }
