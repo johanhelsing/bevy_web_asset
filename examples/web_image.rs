@@ -7,8 +7,8 @@ fn main() {
         // that the asset plugin doesn't create another instance of an asset
         // server. In general, the AssetPlugin should still run so that other
         // aspects of the asset system are initialized correctly.
-        .add_plugin(WebAssetPlugin)
-        .add_plugins(DefaultPlugins)
+        .add_plugin(WebAssetPlugin::default())
+        .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
         .add_startup_system(setup)
         .run();
 }

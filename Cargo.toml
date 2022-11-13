@@ -10,7 +10,7 @@ repository = "https://github.com/johanhelsing/bevy_web_asset"
 version = "0.4.0"
 
 [dependencies]
-bevy = {version = "0.8", default-features = false, features = ["bevy_asset"]}
+bevy = {version = "0.9", default-features = false, features = ["bevy_asset"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 surf = {version = "2.3", default-features = false, features = ["h1-client-rustls"]}
@@ -22,7 +22,7 @@ wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
-bevy = {version = "0.8", default-features = false, features = [
+bevy = {version = "0.9", default-features = false, features = [
   "bevy_asset",
   "png",
   "render",
