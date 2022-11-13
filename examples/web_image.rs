@@ -14,9 +14,9 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         // Simply use a url where you would normally use an asset folder relative path
         texture: asset_server.load("https://s3.johanhelsing.studio/dump/favicon.png"),
         ..default()
