@@ -17,8 +17,8 @@ use super::WebAssetIo;
 /// // The web asset plugin should be added instead of the `AssetPlugin`
 /// // Internally, WebAssetPlugin will create an AssetPlugin and hook into
 /// // it in the right places
-/// app.add_plugin(WebAssetPlugin);
-/// app.add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
+/// app.add_plugin(WebAssetPlugin::default());
+/// app.add_plugins(DefaultPlugins.build().disable::<AssetPlugin>());
 /// ```
 ///});
 #[derive(Default)]
