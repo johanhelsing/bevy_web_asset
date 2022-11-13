@@ -25,18 +25,17 @@ native games. Use cases can be:
 
 ## Usage
 
-NOTE: You need to add the plugin before `DefaultPlugins`:
+NOTE: You need to add the plugin instead of `AssetPlugin` and before `DefaultPlugins`:
 
-Bevy 0.7 users, see [0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
+Bevy 0.7 users, see [the 0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
+
+Bevy 0.8 users, see [the 0.4.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.4.0) for how to add the plugin.
 
 ```rust
 App::new()
-    // The web asset plugin must be inserted before the `AssetPlugin` so
-    // that the asset plugin doesn't create another instance of an asset
-    // server. In general, the AssetPlugin should still run so that other
-    // aspects of the asset system are initialized correctly.
-    .add_plugin(WebAssetPlugin)
-    .add_plugins(DefaultPlugins)
+    // The `WebAssetPlugin` must be inserted instead of `AssetPlugin` and before `DefaultPlugins`
+    .add_plugin(WebAssetPlugin::default())
+    .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
     .add_startup_system(setup)
     .run();
 });

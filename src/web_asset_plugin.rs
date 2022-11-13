@@ -5,6 +5,7 @@ use super::WebAssetIo;
 /// Add this plugin to bevy to support loading http and https urls.
 ///
 /// Needs to be added before Bevy's `DefaultPlugins`.
+/// Also, make sure `AssetPlugin` is not loaded through `DefaultPlugins`.
 ///
 /// # Example
 ///
@@ -13,9 +14,9 @@ use super::WebAssetIo;
 /// # use bevy_web_asset::WebAssetPlugin;
 ///
 /// let mut app = App::new();
-///     // The web asset plugin should be added instead of the `AssetPlugin`
-///     // Internally, WebAssetPlugin will create an AssetPlugin and hook into
-///     // it in the right places
+/// // The web asset plugin should be added instead of the `AssetPlugin`
+/// // Internally, WebAssetPlugin will create an AssetPlugin and hook into
+/// // it in the right places
 /// app.add_plugin(WebAssetPlugin);
 /// app.add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
 /// ```

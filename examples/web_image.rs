@@ -5,8 +5,8 @@ fn main() {
     App::new()
         // The web asset plugin must be inserted before the `AssetPlugin` so
         // that the asset plugin doesn't create another instance of an asset
-        // server. In general, the AssetPlugin should still run so that other
-        // aspects of the asset system are initialized correctly.
+        // server. WebAssetPlugin will handle initialization of AssetPlugin
+        // so we remove it from the default plugins group.
         .add_plugin(WebAssetPlugin::default())
         .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
         .add_startup_system(setup)
