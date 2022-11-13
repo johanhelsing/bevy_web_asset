@@ -31,26 +31,30 @@ Bevy 0.7 users, see [the 0.3.0 readme](https://github.com/johanhelsing/bevy_web_
 
 Bevy 0.8 users, see [the 0.4.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.4.0) for how to add the plugin.
 
-```rust
-App::new()
-    // The `WebAssetPlugin` must be inserted instead of `AssetPlugin` and before `DefaultPlugins`
-    .add_plugin(WebAssetPlugin::default())
-    .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
-    .add_startup_system(setup)
-    .run();
-});
+```rust no_run
+use bevy::prelude::*;
+use bevy_web_asset::WebAssetPlugin;
+
+fn main() {
+    App::new()
+        // The `WebAssetPlugin` must be inserted instead of `AssetPlugin` and before `DefaultPlugins`
+        .add_plugin(WebAssetPlugin::default())
+        .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
+        // ...
+        .run();
+}
 ```
 
 But using it is quite simple, just use http urls instead of regular asset paths.
 
-```rust
+```rust ignore
 let font: Handle<Font> = asset_server.load("https://example.com/fonts/quicksand-light.ttf");
 ```
 
 Or:
 
-```rust
-commands.spawn_bundle(SpriteBundle {
+```rust ignore
+commands.spawn(SpriteBundle {
     // Simply use a url where you would normally use an asset folder relative path
     texture: asset_server.load("https://johanhelsing.studio/assets/favicon.png"),
     ..default()
@@ -67,7 +71,8 @@ merged back into `main` whenever bevy is released.
 |bevy|bevy_web_asset|
 |---|---|
 |main|bevy-main|
-|0.8|0.4, main|
+|0.9|0.5, main|
+|0.8|0.4|
 |0.7|0.3|
 |0.6|0.2|
 |0.5|0.1|
