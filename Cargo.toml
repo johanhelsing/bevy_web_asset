@@ -11,6 +11,11 @@ version = "0.5.0"
 
 [dependencies]
 bevy = {version = "0.9", default-features = false, features = ["bevy_asset"]}
+#bevy = "0.9"
+
+# Copied from https://github.com/bevyengine/bevy/blob/main/crates/bevy_asset/Cargo.toml
+crossbeam-channel = "0.5.0"
+notify = "5.0.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 surf = {version = "2.3", default-features = false, features = ["h1-client-rustls"]}

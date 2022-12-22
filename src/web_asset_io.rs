@@ -1,12 +1,16 @@
-use bevy::{
-    asset::{AssetIo, AssetIoError, BoxedFuture},
-    prelude::warn,
+use super::FilesystemWatcher;
+
+use bevy::asset::{AssetIo, AssetIoError, BoxedFuture};
+use std::{
+    path::{Path, PathBuf},
+    sync::{Arc, RwLock},
 };
-use std::path::{Path, PathBuf};
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
+    pub(crate) root_path: PathBuf,
     pub(crate) default_io: Box<dyn AssetIo>,
+    pub(crate) filesystem_watcher: Arc<RwLock<Option<FilesystemWatcher>>>,
 }
 
 fn is_http(path: &Path) -> bool {
@@ -68,19 +72,30 @@ impl AssetIo for WebAssetIo {
         self.default_io.read_directory(path)
     }
 
-    fn watch_path_for_changes(&self, path: &Path) -> Result<(), AssetIoError> {
-        if is_http(path) {
+    fn watch_path_for_changes(&self, _path: &Path) -> Result<(), AssetIoError> {
+        if is_http(_path) {
             Ok(()) // Pretend everything is fine
         } else {
-            self.default_io.watch_path_for_changes(path)
+            // We can now simply use our own watcher
+
+            let path = self.root_path.join(_path);
+
+            let result = self.filesystem_watcher.write();
+
+            if let Ok(mut option) = result {
+                if let Some(ref mut watcher) = *option {
+                    watcher
+                        .watch(&path)
+                        .map_err(|_error| AssetIoError::PathWatchError(path))?;
+                }
+            }
+
+            Ok(())
         }
     }
 
     fn watch_for_changes(&self) -> Result<(), AssetIoError> {
-        // TODO: we could potentially start polling over http here
-        // but should probably only be done if the server supports caching
-        warn!("bevy_web_asset currently breaks regular filesystem hot reloading, see https://github.com/johanhelsing/bevy_web_asset/issues/1");
-        self.default_io.watch_for_changes()
+        Ok(()) // This is done in web_asset_plugin
     }
 
     fn is_dir(&self, path: &Path) -> bool {
