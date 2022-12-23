@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use super::FilesystemWatcher;
+use super::filesystem_watcher::FilesystemWatcher;
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
@@ -72,8 +72,8 @@ impl AssetIo for WebAssetIo {
         self.default_io.read_directory(path)
     }
 
-    fn watch_path_for_changes(&self, _path: &Path) -> Result<(), AssetIoError> {
-        if is_http(_path) {
+    fn watch_path_for_changes(&self, path: &Path) -> Result<(), AssetIoError> {
+        if is_http(path) {
             // TODO: we could potentially start polling over http here
             // but should probably only be done if the server supports caching
 
@@ -83,15 +83,13 @@ impl AssetIo for WebAssetIo {
         } else {
             // We can now simply use our own watcher
 
-            let path = self.root_path.join(_path);
+            let absolute_path = self.root_path.join(path);
 
-            let result = self.filesystem_watcher.write();
-
-            if let Ok(mut option) = result {
-                if let Some(ref mut watcher) = *option {
+            if let Ok(mut filesystem_watcher) = self.filesystem_watcher.write() {
+                if let Some(ref mut watcher) = *filesystem_watcher {
                     watcher
-                        .watch(&path)
-                        .map_err(|_error| AssetIoError::PathWatchError(path))?;
+                        .watch(&absolute_path)
+                        .map_err(|_error| AssetIoError::PathWatchError(absolute_path))?;
                 }
             }
 

@@ -2,7 +2,7 @@ use bevy::asset::FileAssetIo;
 use bevy::prelude::*;
 use std::sync::{Arc, RwLock};
 
-use super::FilesystemWatcher;
+use super::filesystem_watcher::FilesystemWatcher;
 use super::WebAssetIo;
 
 /// Add this plugin to bevy to support loading http and https urls.
@@ -70,7 +70,7 @@ impl Plugin for WebAssetPlugin {
         if self.asset_plugin.watch_for_changes {
             app.add_system_to_stage(
                 bevy::asset::AssetStage::LoadAssets,
-                super::web_filesystem_watcher::filesystem_watcher_system,
+                super::filesystem_watcher::filesystem_watcher_system,
             );
         }
     }

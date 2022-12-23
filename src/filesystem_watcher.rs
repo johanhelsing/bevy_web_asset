@@ -44,10 +44,8 @@ pub fn filesystem_watcher_system(asset_server: Res<AssetServer>) {
         return;
     };
 
-    let result = asset_io.filesystem_watcher.read();
-
-    if let Ok(option) = result {
-        if let Some(ref watcher) = *option {
+    if let Ok(filesystem_watcher) = asset_io.filesystem_watcher.read() {
+        if let Some(ref watcher) = *filesystem_watcher {
             loop {
                 let event = match watcher.receiver.try_recv() {
                     Ok(result) => result.unwrap(),
