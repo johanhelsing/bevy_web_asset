@@ -1,10 +1,10 @@
-use super::FilesystemWatcher;
-
 use bevy::asset::{AssetIo, AssetIoError, BoxedFuture};
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
+
+use super::FilesystemWatcher;
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
@@ -74,6 +74,11 @@ impl AssetIo for WebAssetIo {
 
     fn watch_path_for_changes(&self, _path: &Path) -> Result<(), AssetIoError> {
         if is_http(_path) {
+            // TODO: we could potentially start polling over http here
+            // but should probably only be done if the server supports caching
+
+            // This is where we would write to a self.network_watcher
+
             Ok(()) // Pretend everything is fine
         } else {
             // We can now simply use our own watcher
@@ -95,7 +100,8 @@ impl AssetIo for WebAssetIo {
     }
 
     fn watch_for_changes(&self) -> Result<(), AssetIoError> {
-        Ok(()) // This is done in web_asset_plugin
+        // self.filesystem_watcher is created in `web_asset_plugin.rs`
+        Ok(()) // This could create self.network_watcher
     }
 
     fn is_dir(&self, path: &Path) -> bool {

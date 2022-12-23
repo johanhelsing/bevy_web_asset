@@ -29,11 +29,11 @@ impl FilesystemWatcher {
     }
 }
 
-use super::WebAssetIo;
-
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use crossbeam_channel::TryRecvError;
+
+use super::WebAssetIo;
 
 pub fn filesystem_watcher_system(asset_server: Res<AssetServer>) {
     let mut changed = HashSet::default();
