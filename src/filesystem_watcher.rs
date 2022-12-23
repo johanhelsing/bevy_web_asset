@@ -2,7 +2,7 @@ use crossbeam_channel::Receiver;
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Result, Watcher};
 use std::path::Path;
 
-#[allow(missing_docs)]
+/// See the [original implementation](https://github.com/bevyengine/bevy/blob/main/crates/bevy_asset/src/filesystem_watcher.rs)
 pub struct FilesystemWatcher {
     pub watcher: RecommendedWatcher,
     pub receiver: Receiver<Result<Event>>,
