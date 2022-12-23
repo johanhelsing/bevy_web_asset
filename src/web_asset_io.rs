@@ -1,12 +1,16 @@
-use bevy::{
-    asset::{AssetIo, AssetIoError, BoxedFuture},
-    prelude::warn,
+use bevy::asset::{AssetIo, AssetIoError, BoxedFuture};
+use std::{
+    path::{Path, PathBuf},
+    sync::{Arc, RwLock},
 };
-use std::path::{Path, PathBuf};
+
+use super::filesystem_watcher::FilesystemWatcher;
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
+    pub(crate) root_path: PathBuf,
     pub(crate) default_io: Box<dyn AssetIo>,
+    pub(crate) filesystem_watcher: Arc<RwLock<Option<FilesystemWatcher>>>,
 }
 
 fn is_http(path: &Path) -> bool {
@@ -70,17 +74,32 @@ impl AssetIo for WebAssetIo {
 
     fn watch_path_for_changes(&self, path: &Path) -> Result<(), AssetIoError> {
         if is_http(path) {
+            // TODO: we could potentially start polling over http here
+            // but should probably only be done if the server supports caching
+
+            // This is where we would write to a self.network_watcher
+
             Ok(()) // Pretend everything is fine
         } else {
-            self.default_io.watch_path_for_changes(path)
+            // We can now simply use our own watcher
+
+            let absolute_path = self.root_path.join(path);
+
+            if let Ok(mut filesystem_watcher) = self.filesystem_watcher.write() {
+                if let Some(ref mut watcher) = *filesystem_watcher {
+                    watcher
+                        .watch(&absolute_path)
+                        .map_err(|_error| AssetIoError::PathWatchError(absolute_path))?;
+                }
+            }
+
+            Ok(())
         }
     }
 
     fn watch_for_changes(&self) -> Result<(), AssetIoError> {
-        // TODO: we could potentially start polling over http here
-        // but should probably only be done if the server supports caching
-        warn!("bevy_web_asset currently breaks regular filesystem hot reloading, see https://github.com/johanhelsing/bevy_web_asset/issues/1");
-        self.default_io.watch_for_changes()
+        // self.filesystem_watcher is created in `web_asset_plugin.rs`
+        Ok(()) // This could create self.network_watcher
     }
 
     fn is_dir(&self, path: &Path) -> bool {
