@@ -1,5 +1,10 @@
 # Bevy Web Asset
 
+[![crates.io](https://img.shields.io/crates/v/bevy_web_asset.svg)](https://crates.io/crates/bevy_web_asset)
+![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)
+[![crates.io](https://img.shields.io/crates/d/bevy_web_asset.svg)](https://crates.io/crates/bevy_web_asset)
+[![docs.rs](https://img.shields.io/docsrs/bevy_web_asset)](https://docs.rs/bevy_web_asset)
+
 This is a tiny crate that that wraps the standard bevy asset loader, and adds
 the ability to load assets from http and https urls.
 
@@ -20,23 +25,54 @@ native games. Use cases can be:
 
 ## Usage
 
-Adding the plugin is little bit tricky:
+NOTE: You need to add the plugin instead of `AssetPlugin` and before `DefaultPlugins`:
 
-```rust
-.add_plugins_with(DefaultPlugins, |group| {
-    // The web asset plugin must be inserted in-between the
-    // `CorePlugin' and `AssetPlugin`. It needs to be after the
-    // CorePlugin, so that the IO task pool has already been constructed.
-    // And it must be before the `AssetPlugin` so that the asset plugin
-    // doesn't create another instance of an assert server. In general,
-    // the AssetPlugin should still run so that other aspects of the
-    // asset system are initialized correctly.
-    group.add_before::<bevy::asset::AssetPlugin, _>(WebAssetPlugin)
-});
+Bevy 0.7 users, see [the 0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
+
+Bevy 0.8 users, see [the 0.4.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.4.0) for how to add the plugin.
+
+```rust no_run
+use bevy::prelude::*;
+use bevy_web_asset::WebAssetPlugin;
+
+fn main() {
+    App::new()
+        // The `WebAssetPlugin` must be inserted instead of `AssetPlugin` and before `DefaultPlugins`
+        .add_plugin(WebAssetPlugin::default())
+        .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
+        // ...
+        .run();
+}
 ```
 
 But using it is quite simple, just use http urls instead of regular asset paths.
 
-```rust
+```rust ignore
 let font: Handle<Font> = asset_server.load("https://example.com/fonts/quicksand-light.ttf");
 ```
+
+Or:
+
+```rust ignore
+commands.spawn(SpriteBundle {
+    // Simply use a url where you would normally use an asset folder relative path
+    texture: asset_server.load("https://johanhelsing.studio/assets/favicon.png"),
+    ..default()
+});
+```
+
+# Bevy version support
+
+I intend to support the latest bevy release in the `main` branch.
+
+Fixes against the Bevy `main` branch goes in the the `bevy-main` branch and are
+merged back into `main` whenever bevy is released.
+
+|bevy|bevy_web_asset|
+|---|---|
+|main|bevy-main|
+|0.9|0.5, main|
+|0.8|0.4|
+|0.7|0.3|
+|0.6|0.2|
+|0.5|0.1|
