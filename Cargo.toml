@@ -29,6 +29,7 @@ web-sys = {version = "0.3.22", default-features = false}
 bevy = {git = "https://github.com/bevyengine/bevy", default-features = false, features = [
   "bevy_asset",
   "png",
-  "render",
+  "bevy_sprite",
+  "bevy_core_pipeline",
   "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
 ]}
