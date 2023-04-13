@@ -26,4 +26,10 @@ wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
-bevy = "0.10"
+bevy = {version = "0.10", default-features = false, features = [
+  "bevy_asset",
+  "bevy_core_pipeline",
+  "bevy_sprite",
+  "png",
+  "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
+]}
