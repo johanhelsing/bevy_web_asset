@@ -1,16 +1,12 @@
-use bevy::asset::{AssetIo, AssetIoError, BoxedFuture};
+use bevy::{asset::{AssetIo, AssetIoError}, utils::BoxedFuture};
 use std::{
     path::{Path, PathBuf},
-    sync::{Arc, RwLock},
 };
 
-use super::filesystem_watcher::FilesystemWatcher;
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
-    pub(crate) root_path: PathBuf,
     pub(crate) default_io: Box<dyn AssetIo>,
-    pub(crate) filesystem_watcher: Arc<RwLock<Option<FilesystemWatcher>>>,
 }
 
 fn is_http(path: &Path) -> bool {
@@ -33,7 +29,7 @@ impl AssetIo for WebAssetIo {
                     .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
 
                 if let Err(err) = &response {
-                    warn!("Failed to fetch asset {uri}: {err:?}");
+                    // warn!("Failed to fetch asset {uri}: {err:?}");
                 }
 
                 let response = response.map_err(|_| AssetIoError::NotFound(path.to_path_buf()))?;
@@ -55,7 +51,6 @@ impl AssetIo for WebAssetIo {
                     .body_bytes()
                     .await
                     .map_err(|_| AssetIoError::NotFound(path.to_path_buf()))?;
-
                 Ok(bytes)
             });
 
@@ -72,8 +67,8 @@ impl AssetIo for WebAssetIo {
         self.default_io.read_directory(path)
     }
 
-    fn watch_path_for_changes(&self, path: &Path) -> Result<(), AssetIoError> {
-        if is_http(path) {
+    fn watch_path_for_changes(&self, to_watch: &Path, to_reload: Option<PathBuf>) -> Result<(), AssetIoError> {
+        if is_http(to_watch) {
             // TODO: we could potentially start polling over http here
             // but should probably only be done if the server supports caching
 
@@ -81,25 +76,12 @@ impl AssetIo for WebAssetIo {
 
             Ok(()) // Pretend everything is fine
         } else {
-            // We can now simply use our own watcher
-
-            let absolute_path = self.root_path.join(path);
-
-            if let Ok(mut filesystem_watcher) = self.filesystem_watcher.write() {
-                if let Some(ref mut watcher) = *filesystem_watcher {
-                    watcher
-                        .watch(&absolute_path)
-                        .map_err(|_error| AssetIoError::PathWatchError(absolute_path))?;
-                }
-            }
-
-            Ok(())
+            self.default_io.watch_path_for_changes(to_watch, to_reload)
         }
     }
 
     fn watch_for_changes(&self) -> Result<(), AssetIoError> {
-        // self.filesystem_watcher is created in `web_asset_plugin.rs`
-        Ok(()) // This could create self.network_watcher
+        self.default_io.watch_for_changes()
     }
 
     fn is_dir(&self, path: &Path) -> bool {

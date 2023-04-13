@@ -10,7 +10,7 @@ repository = "https://github.com/johanhelsing/bevy_web_asset"
 version = "0.5.0"
 
 [dependencies]
-bevy = {version = "0.9", default-features = false, features = ["bevy_asset"]}
+bevy = {version = "0.10", default-features = false, features = ["bevy_asset"]}
 
 # Copied from https://github.com/bevyengine/bevy/blob/main/crates/bevy_asset/Cargo.toml
 crossbeam-channel = "0.5.0"
@@ -26,9 +26,4 @@ wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
-bevy = {version = "0.9", default-features = false, features = [
-  "bevy_asset",
-  "png",
-  "render",
-  "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
-]}
+bevy = "0.10"
