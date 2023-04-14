@@ -76,3 +76,16 @@ merged back into `main` whenever bevy is released.
 |0.7|0.3|
 |0.6|0.2|
 |0.5|0.1|
+
+## License
+
+`bevy_web_asset` is dual-licensed under either
+
+- MIT License (./LICENSE-MIT or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 (./LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)
+
+at your option.
+
+## Contributions
+
+PRs welcome!
