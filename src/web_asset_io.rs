@@ -1,8 +1,8 @@
-use bevy::{asset::{AssetIo, AssetIoError}, utils::BoxedFuture};
-use std::{
-    path::{Path, PathBuf},
+use bevy::{
+    asset::{AssetIo, AssetIoError},
+    utils::BoxedFuture,
 };
-
+use std::path::{Path, PathBuf};
 
 /// Wraps the default bevy AssetIo and adds support for loading http urls
 pub struct WebAssetIo {
@@ -67,7 +67,11 @@ impl AssetIo for WebAssetIo {
         self.default_io.read_directory(path)
     }
 
-    fn watch_path_for_changes(&self, to_watch: &Path, to_reload: Option<PathBuf>) -> Result<(), AssetIoError> {
+    fn watch_path_for_changes(
+        &self,
+        to_watch: &Path,
+        to_reload: Option<PathBuf>,
+    ) -> Result<(), AssetIoError> {
         if is_http(to_watch) {
             // TODO: we could potentially start polling over http here
             // but should probably only be done if the server supports caching

@@ -22,10 +22,9 @@ pub struct WebAssetPlugin;
 
 impl Plugin for WebAssetPlugin {
     fn build(&self, app: &mut App) {
-        let asset_io = 
-            WebAssetIo {
-                default_io: AssetPlugin::default().create_platform_default_asset_io(),
-            };
+        let asset_io = WebAssetIo {
+            default_io: AssetPlugin::default().create_platform_default_asset_io(),
+        };
 
         app.insert_resource(AssetServer::new(asset_io));
     }
