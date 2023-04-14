@@ -61,7 +61,7 @@ commands.spawn(SpriteBundle {
 });
 ```
 
-# Bevy version support
+## Bevy version support
 
 I intend to support the latest bevy release in the `main` branch.
 
