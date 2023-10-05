@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{AssetIo, AssetIoError},
+    asset::{AssetIo, AssetIoError, FileType, ChangeWatcher},
     utils::BoxedFuture,
 };
 use std::path::{Path, PathBuf};
@@ -84,8 +84,8 @@ impl AssetIo for WebAssetIo {
         }
     }
 
-    fn watch_for_changes(&self) -> Result<(), AssetIoError> {
-        self.default_io.watch_for_changes()
+    fn watch_for_changes(&self, configuration: &ChangeWatcher) -> Result<(), AssetIoError> {
+        self.default_io.watch_for_changes(configuration)
     }
 
     fn is_dir(&self, path: &Path) -> bool {
@@ -97,6 +97,10 @@ impl AssetIo for WebAssetIo {
     }
 
     fn get_metadata(&self, path: &Path) -> Result<bevy::asset::Metadata, AssetIoError> {
-        self.default_io.get_metadata(path)
+        if is_http(path) {
+            Ok(bevy::asset::Metadata::new(FileType::File))
+        } else {
+            self.default_io.get_metadata(path)
+        }
     }
 }

@@ -27,5 +27,11 @@ impl Plugin for WebAssetPlugin {
         };
 
         app.insert_resource(AssetServer::new(asset_io));
+
+        let temp_asset_plugin = AssetPlugin::default();
+        // AssetPlugin::build does a bunch of setup that is needed for asset loading to work,
+        // but those things aren't all public. Fortunately calling build won't add a new AssetServer
+        // if one already exists!
+        temp_asset_plugin.build(app);
     }
 }
