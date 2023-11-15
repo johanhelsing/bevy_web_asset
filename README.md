@@ -5,13 +5,9 @@
 [![crates.io](https://img.shields.io/crates/d/bevy_web_asset.svg)](https://crates.io/crates/bevy_web_asset)
 [![docs.rs](https://img.shields.io/docsrs/bevy_web_asset)](https://docs.rs/bevy_web_asset)
 
-This is a tiny crate that that wraps the standard bevy asset loader, and adds
-the ability to load assets from http and https urls.
+This is a tiny crate that that adds the ability to load assets from http and https urls.
 
 Supports both wasm (web-sys) and native.
-
-If asset paths start with http:// or https://, then we try to do a web request
-to load the asset, otherwise, we just call the normal asset io.
 
 This is nice if you want to keep your content on a server, even when developing
 native games. Use cases can be:
@@ -25,7 +21,7 @@ native games. Use cases can be:
 
 ## Usage
 
-NOTE: You need to add the plugin instead of `AssetPlugin` and before `DefaultPlugins`:
+NOTE: You need to add the plugin before `AssetPlugin`:
 
 Bevy 0.7 users, see [the 0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
 
@@ -37,9 +33,11 @@ use bevy_web_asset::WebAssetPlugin;
 
 fn main() {
     App::new()
-        // The `WebAssetPlugin` must be inserted instead of `AssetPlugin` and before `DefaultPlugins`
-        .add_plugin(WebAssetPlugin::default())
-        .add_plugins(DefaultPlugins.build().disable::<AssetPlugin>())
+        // The `WebAssetPlugin` must be inserted before the `AssetPlugin`
+        .add_plugins((
+            WebAssetPlugin::default(),
+            DefaultPlugins
+        ))
         // ...
         .run();
 }

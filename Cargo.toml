@@ -10,7 +10,7 @@ repository = "https://github.com/johanhelsing/bevy_web_asset"
 version = "0.6.0"
 
 [dependencies]
-bevy = {version = "0.10", default-features = false, features = ["bevy_asset"]}
+bevy = {version = "0.12", default-features = false, features = ["bevy_asset"]}
 
 # Copied from https://github.com/bevyengine/bevy/blob/main/crates/bevy_asset/Cargo.toml
 crossbeam-channel = "0.5.0"
@@ -26,7 +26,7 @@ wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
-bevy = {version = "0.10", default-features = false, features = [
+bevy = {version = "0.12", default-features = false, features = [
   "bevy_asset",
   "bevy_core_pipeline",
   "bevy_sprite",
