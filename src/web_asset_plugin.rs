@@ -20,7 +20,6 @@ use bevy::asset::io::AssetSource;
 ///     DefaultPlugins
 /// ));
 /// ```
-///});
 #[derive(Default)]
 pub struct WebAssetPlugin;
 
