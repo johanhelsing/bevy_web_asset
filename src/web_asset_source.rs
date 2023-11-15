@@ -31,11 +31,13 @@ impl WebAssetReader {
         uri.set_extension(extension);
         uri
     }
+}
+
+async fn get<'a>(uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    let uri_str = uri.to_str().unwrap();
 
     #[cfg(target_arch = "wasm")]
-    async fn get(&self, path: PathBuf) -> Result<Box<Reader>, AssetReaderError> {
-        let uri_str = uri.to_str().unwrap();
-
+    let bytes = {
         use wasm_bindgen::JsCast;
         use wasm_bindgen_futures::JsFuture;
         let window = web_sys::window().unwrap();
@@ -54,26 +56,18 @@ impl WebAssetReader {
             .await
             .unwrap();
 
-        let bytes = js_sys::Uint8Array::new(&data).to_vec();
-
-        let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-        Ok(reader)
-    }
+        js_sys::Uint8Array::new(&data).to_vec()
+    };
 
     #[cfg(not(target_arch = "wasm"))]
-    async fn get(&self, uri: PathBuf) -> Result<Box<Reader>, AssetReaderError> {
-        let uri_str = uri.to_str().unwrap();
+    let bytes = surf::get(uri_str)
+        .recv_bytes()
+        .await
+        .map_err(|_| AssetReaderError::NotFound(uri))?;
 
-        let bytes = surf::get(uri_str)
-            .recv_bytes()
-            .await
-            .map_err(|_| AssetReaderError::NotFound(uri))?;
+    let reader: Box<Reader> = Box::new(VecReader::new(bytes));
 
-        let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-        Ok(reader)
-    }
+    Ok(reader)
 }
 
 impl AssetReader for WebAssetReader {
@@ -81,14 +75,14 @@ impl AssetReader for WebAssetReader {
         &'a self,
         path: &'a Path,
     ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        Box::pin(self.get(self.make_uri(path)))
+        Box::pin(get(self.make_uri(path)))
     }
 
     fn read_meta<'a>(
         &'a self,
         path: &'a Path,
     ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        Box::pin(self.get(self.make_meta_uri(path)))
+        Box::pin(get(self.make_meta_uri(path)))
     }
 
     fn is_directory<'a>(
