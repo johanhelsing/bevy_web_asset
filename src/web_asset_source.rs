@@ -31,6 +31,49 @@ impl WebAssetReader {
         uri.set_extension(extension);
         uri
     }
+
+    #[cfg(target_arch = "wasm")]
+    async fn get<'a>(&'a self, path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+        let uri_str = uri.to_str().unwrap();
+
+        use wasm_bindgen::JsCast;
+        use wasm_bindgen_futures::JsFuture;
+        let window = web_sys::window().unwrap();
+        let response = JsFuture::from(window.fetch_with_str(uri_str))
+            .await
+            .map(|r| r.dyn_into::<web_sys::Response>().unwrap())
+            .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
+
+        if let Err(err) = &response {
+            // warn!("Failed to fetch asset {uri_str}: {err:?}");
+        }
+
+        let response = response.map_err(|_| AssetIoError::NotFound(uri))?;
+
+        let data = JsFuture::from(response.array_buffer().unwrap())
+            .await
+            .unwrap();
+
+        let bytes = js_sys::Uint8Array::new(&data).to_vec();
+
+        let reader: Box<Reader> = Box::new(VecReader::new(bytes));
+
+        Ok(reader)
+    }
+
+    #[cfg(not(target_arch = "wasm"))]
+    async fn get<'a>(&'a self, uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+        let uri_str = uri.to_str().unwrap();
+
+        let bytes = surf::get(uri_str)
+            .recv_bytes()
+            .await
+            .map_err(|_| AssetReaderError::NotFound(uri))?;
+
+        let reader: Box<Reader> = Box::new(VecReader::new(bytes));
+
+        Ok(reader)
+    }
 }
 
 impl AssetReader for WebAssetReader {
@@ -38,107 +81,14 @@ impl AssetReader for WebAssetReader {
         &'a self,
         path: &'a Path,
     ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        #[cfg(target_arch = "wasm")]
-        let fut = Box::pin(async move {
-            let uri = self.make_uri(path);
-            let uri_str = uri.to_str().unwrap();
-
-            use wasm_bindgen::JsCast;
-            use wasm_bindgen_futures::JsFuture;
-            let window = web_sys::window().unwrap();
-            let response = JsFuture::from(window.fetch_with_str(uri_str))
-                .await
-                .map(|r| r.dyn_into::<web_sys::Response>().unwrap())
-                .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
-
-            if let Err(err) = &response {
-                // warn!("Failed to fetch asset {uri_str}: {err:?}");
-            }
-
-            let response = response.map_err(|_| AssetIoError::NotFound(uri))?;
-
-            let data = JsFuture::from(response.array_buffer().unwrap())
-                .await
-                .unwrap();
-
-            let bytes = js_sys::Uint8Array::new(&data).to_vec();
-
-            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-            Ok(reader)
-        });
-
-        #[cfg(not(target_arch = "wasm"))]
-        let fut = Box::pin(async move {
-            let uri = self.make_uri(path);
-            let uri_str = uri.to_str().unwrap();
-
-            let bytes = surf::get(uri_str)
-                .recv_bytes()
-                .await
-                .map_err(|_| AssetReaderError::NotFound(uri))?;
-
-            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-            Ok(reader)
-        });
-
-        fut
+        Box::pin(self.get(self.make_uri(path)))
     }
 
-    // Note: It would be simpler to simply call Self::read with the new path,
-    // however bevy_asset expects us to append the .meta extension ourselves
-    // so the path is owned and would not live long enough.
     fn read_meta<'a>(
         &'a self,
         path: &'a Path,
     ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        #[cfg(target_arch = "wasm")]
-        let fut = Box::pin(async move {
-            let uri = self.make_meta_uri(path);
-            let uri_str = uri.to_str().unwrap();
-
-            use wasm_bindgen::JsCast;
-            use wasm_bindgen_futures::JsFuture;
-            let window = web_sys::window().unwrap();
-            let response = JsFuture::from(window.fetch_with_str(uri_str))
-                .await
-                .map(|r| r.dyn_into::<web_sys::Response>().unwrap())
-                .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
-
-            if let Err(err) = &response {
-                // warn!("Failed to fetch asset {uri_str}: {err:?}");
-            }
-
-            let response = response.map_err(|_| AssetIoError::NotFound(uri))?;
-
-            let data = JsFuture::from(response.array_buffer().unwrap())
-                .await
-                .unwrap();
-
-            let bytes = js_sys::Uint8Array::new(&data).to_vec();
-
-            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-            Ok(reader)
-        });
-
-        #[cfg(not(target_arch = "wasm"))]
-        let fut = Box::pin(async move {
-            let uri = self.make_meta_uri(path);
-            let uri_str = uri.to_str().unwrap();
-
-            let bytes = surf::get(uri_str)
-                .recv_bytes()
-                .await
-                .map_err(|_| AssetReaderError::NotFound(uri))?;
-
-            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
-            Ok(reader)
-        });
-
-        fut
+        Box::pin(self.get(self.make_meta_uri(path)))
     }
 
     fn is_directory<'a>(
