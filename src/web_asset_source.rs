@@ -50,7 +50,7 @@ async fn get<'a>(uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
             // warn!("Failed to fetch asset {uri_str}: {err:?}");
         }
 
-        let response = response.map_err(|_| AssetIoError::NotFound(uri))?;
+        let response = response.map_err(|_| AssetReaderError::NotFound(uri))?;
 
         let data = JsFuture::from(response.array_buffer().unwrap())
             .await
