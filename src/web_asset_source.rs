@@ -33,7 +33,7 @@ impl WebAssetReader {
     }
 
     #[cfg(target_arch = "wasm")]
-    async fn get<'a>(&'a self, path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    async fn get(&self, path: PathBuf) -> Result<Box<Reader>, AssetReaderError> {
         let uri_str = uri.to_str().unwrap();
 
         use wasm_bindgen::JsCast;
@@ -62,7 +62,7 @@ impl WebAssetReader {
     }
 
     #[cfg(not(target_arch = "wasm"))]
-    async fn get<'a>(&'a self, uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    async fn get(&self, uri: PathBuf) -> Result<Box<Reader>, AssetReaderError> {
         let uri_str = uri.to_str().unwrap();
 
         let bytes = surf::get(uri_str)
