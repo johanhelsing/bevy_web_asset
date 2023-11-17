@@ -16,7 +16,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn(SpriteBundle {
         // Simply use a url where you would normally use an asset folder relative path
-        texture: asset_server.load("https://s3.johanhelsing.studio/dump/favicon.png"),
+        texture: asset_server.load(
+            // TODO: `https://s3.johanhelsing.studio/dump/favicon.png` doesn't seem to work
+            "https://raw.githubusercontent.com/johanhelsing/bevy_web_asset/main/assets/favicon.png",
+        ),
         ..default()
     });
 }

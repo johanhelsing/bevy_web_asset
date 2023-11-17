@@ -1,8 +1,8 @@
-use bevy::asset::io::{PathStream, VecReader};
+use bevy::asset::io::PathStream;
 use bevy::utils::BoxedFuture;
 use std::path::{Path, PathBuf};
 
-use bevy::asset::io::{AssetReader, AssetReaderError, Reader};
+use bevy::asset::io::{AssetReader, AssetReaderError, Reader, VecReader};
 
 // Note: Bevy does not retain the asset source identifier (http/https)
 // so we need to pass the protocol manually.
@@ -34,39 +34,50 @@ impl WebAssetReader {
 }
 
 async fn get<'a>(uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
-    let uri_str = uri.to_str().unwrap();
+    use ehttp::{fetch, Request};
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::sync::mpsc::{channel, Receiver};
+    use std::task::{Context, Poll};
 
-    #[cfg(target_arch = "wasm")]
-    let bytes = {
-        use wasm_bindgen::JsCast;
-        use wasm_bindgen_futures::JsFuture;
-        let window = web_sys::window().unwrap();
-        let response = JsFuture::from(window.fetch_with_str(uri_str))
-            .await
-            .map(|r| r.dyn_into::<web_sys::Response>().unwrap())
-            .map_err(|e| e.dyn_into::<js_sys::TypeError>().unwrap());
-
-        if let Err(err) = &response {
-            // warn!("Failed to fetch asset {uri_str}: {err:?}");
-        }
-
-        let response = response.map_err(|_| AssetReaderError::NotFound(uri))?;
-
-        let data = JsFuture::from(response.array_buffer().unwrap())
-            .await
+    let uri_str = uri.to_string_lossy();
+    bevy::prelude::info!("fetching {uri_str}");
+    let (sender, receiver) = channel();
+    fetch(Request::get(uri_str), move |result| {
+        bevy::prelude::info!("callback");
+        use std::io::{Error, ErrorKind};
+        sender
+            .send(
+                result
+                    .map_err(|e| AssetReaderError::Io(Error::new(ErrorKind::Other, e)))
+                    .and_then(|response| match response.status {
+                        200 => Ok(response.bytes),
+                        404 => Err(AssetReaderError::NotFound(uri)),
+                        _ => Err(AssetReaderError::Io(Error::from(ErrorKind::Other))),
+                    }),
+            )
             .unwrap();
+    });
 
-        js_sys::Uint8Array::new(&data).to_vec()
-    };
+    struct AsyncReceiver<T>(Receiver<T>);
+    impl<T> Future for AsyncReceiver<T> {
+        type Output = T;
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            match self.0.try_recv() {
+                Err(_) => {
+                    cx.waker().wake_by_ref();
+                    Poll::Pending
+                }
+                Ok(t) => {
+                    bevy::prelude::info!("something");
+                    Poll::Ready(t)
+                }
+            }
+        }
+    }
 
-    #[cfg(not(target_arch = "wasm"))]
-    let bytes = surf::get(uri_str)
-        .recv_bytes()
-        .await
-        .map_err(|_| AssetReaderError::NotFound(uri))?;
-
+    let bytes = AsyncReceiver(receiver).await?;
     let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-
     Ok(reader)
 }
 
