@@ -11,7 +11,15 @@ version = "0.7.0"
 
 [dependencies]
 bevy = {version = "0.12", default-features = false, features = ["bevy_asset"]}
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 ehttp = "0.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = {version = "0.3", default-features = false}
+wasm-bindgen = {version = "0.2", default-features = false}
+wasm-bindgen-futures = "0.4"
+web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
 bevy = {version = "0.12", default-features = false, features = [
@@ -19,5 +27,6 @@ bevy = {version = "0.12", default-features = false, features = [
   "bevy_core_pipeline",
   "bevy_sprite",
   "png",
+  "webgl2",
   "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
 ]}
