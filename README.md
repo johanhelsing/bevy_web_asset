@@ -63,13 +63,13 @@ Fixes against the Bevy `main` branch goes in the the `bevy-main` branch and are
 merged back into `main` whenever bevy is released.
 
 |bevy|bevy_web_asset|
-|---|---|
-|main|bevy-main|
-|0.9|0.5, main|
-|0.8|0.4|
-|0.7|0.3|
-|0.6|0.2|
-|0.5|0.1|
+|----|--------------|
+|0.12|0.7, main     |
+|0.9 |0.5           |
+|0.8 |0.4           |
+|0.7 |0.3           |
+|0.6 |0.2           |
+|0.5 |0.1           |
 
 ## License
 
