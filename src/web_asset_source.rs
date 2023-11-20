@@ -2,10 +2,8 @@ use bevy::asset::io::PathStream;
 use bevy::utils::BoxedFuture;
 use std::path::{Path, PathBuf};
 
-use bevy::asset::io::{AssetReader, AssetReaderError, Reader, VecReader};
+use bevy::asset::io::{AssetReader, AssetReaderError, Reader};
 
-// Note: Bevy does not retain the asset source identifier (http/https)
-// so we need to pass the protocol manually.
 pub(super) enum WebAssetReader {
     Http,
     Https,
@@ -33,52 +31,88 @@ impl WebAssetReader {
     }
 }
 
-async fn get<'a>(uri: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
-    use ehttp::{fetch, Request};
-    use std::future::Future;
-    use std::pin::Pin;
-    use std::sync::mpsc::{channel, Receiver};
-    use std::task::{Context, Poll};
+#[cfg(target_arch = "wasm32")]
+async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    use bevy::asset::io::VecReader;
+    use js_sys::Uint8Array;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_futures::JsFuture;
+    use web_sys::Response;
 
-    let uri_str = uri.to_string_lossy();
-    bevy::prelude::info!("fetching {uri_str}");
-    let (sender, receiver) = channel();
-    fetch(Request::get(uri_str), move |result| {
-        bevy::prelude::info!("callback");
-        use std::io::{Error, ErrorKind};
-        sender
-            .send(
-                result
-                    .map_err(|e| AssetReaderError::Io(Error::new(ErrorKind::Other, e)))
-                    .and_then(|response| match response.status {
-                        200 => Ok(response.bytes),
-                        404 => Err(AssetReaderError::NotFound(uri)),
-                        _ => Err(AssetReaderError::Io(Error::from(ErrorKind::Other))),
-                    }),
-            )
-            .unwrap();
-    });
-
-    struct AsyncReceiver<T>(Receiver<T>);
-    impl<T> Future for AsyncReceiver<T> {
-        type Output = T;
-        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-            match self.0.try_recv() {
+    fn js_value_to_err<'a>(
+        context: &'a str,
+    ) -> impl FnOnce(wasm_bindgen::JsValue) -> std::io::Error + 'a {
+        move |value| {
+            let message = match js_sys::JSON::stringify(&value) {
+                Ok(js_str) => format!("Failed to {context}: {js_str}"),
                 Err(_) => {
-                    cx.waker().wake_by_ref();
-                    Poll::Pending
+                    format!(
+                        "Failed to {context} and also failed to stringify the JSValue of the error"
+                    )
                 }
-                Ok(t) => {
-                    bevy::prelude::info!("something");
-                    Poll::Ready(t)
-                }
-            }
+            };
+
+            std::io::Error::new(std::io::ErrorKind::Other, message)
         }
     }
 
-    let bytes = AsyncReceiver(receiver).await?;
-    let reader: Box<Reader> = Box::new(VecReader::new(bytes));
-    Ok(reader)
+    let window = web_sys::window().unwrap();
+    let resp_value = JsFuture::from(window.fetch_with_str(path.to_str().unwrap()))
+        .await
+        .map_err(js_value_to_err("fetch path"))?;
+    let resp = resp_value
+        .dyn_into::<Response>()
+        .map_err(js_value_to_err("convert fetch to Response"))?;
+    match resp.status() {
+        200 => {
+            let data = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
+            let bytes = Uint8Array::new(&data).to_vec();
+            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
+            Ok(reader)
+        }
+        404 => Err(AssetReaderError::NotFound(path)),
+        status => Err(AssetReaderError::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Encountered unexpected HTTP status {status}"),
+        ))),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    use std::future::Future;
+    use std::io;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+
+    use isahc::http::StatusCode;
+    use isahc::{get_async, AsyncBody, Error, Response, ResponseFuture};
+
+    struct ContinuousPoll<'a>(ResponseFuture<'a>);
+
+    impl<'a> Future for ContinuousPoll<'a> {
+        type Output = Result<Response<AsyncBody>, Error>;
+
+        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            // Always wake - blocks on single threaded executor.
+            cx.waker().wake_by_ref();
+
+            Pin::new(&mut self.0).poll(cx)
+        }
+    }
+
+    let response = ContinuousPoll(get_async(path.to_str().unwrap()))
+        .await
+        .unwrap();
+
+    match response.status() {
+        StatusCode::OK => Ok(Box::new(response.into_body()) as _),
+        StatusCode::NOT_FOUND => Err(AssetReaderError::NotFound(path)),
+        code => Err(AssetReaderError::Io(io::Error::new(
+            io::ErrorKind::Other,
+            format!("unexpected status code {code}"),
+        ))),
+    }
 }
 
 impl AssetReader for WebAssetReader {
@@ -100,14 +134,14 @@ impl AssetReader for WebAssetReader {
         &'a self,
         _path: &'a Path,
     ) -> BoxedFuture<'a, Result<bool, AssetReaderError>> {
-        Box::pin(async move { Ok(false) })
+        Box::pin(async { Ok(false) })
     }
 
     fn read_directory<'a>(
         &'a self,
         path: &'a Path,
     ) -> BoxedFuture<'a, Result<Box<PathStream>, AssetReaderError>> {
-        Box::pin(async move { Err(AssetReaderError::NotFound(self.make_uri(path))) })
+        Box::pin(async { Err(AssetReaderError::NotFound(self.make_uri(path))) })
     }
 }
 
