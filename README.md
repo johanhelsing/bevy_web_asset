@@ -23,10 +23,6 @@ native games. Use cases can be:
 
 NOTE: You need to add the plugin before `AssetPlugin`:
 
-Bevy 0.7 users, see [the 0.3.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.3.0) for how to add the plugin.
-
-Bevy 0.8 users, see [the 0.4.0 readme](https://github.com/johanhelsing/bevy_web_asset/tree/v0.4.0) for how to add the plugin.
-
 ```rust no_run
 use bevy::prelude::*;
 use bevy_web_asset::WebAssetPlugin;
