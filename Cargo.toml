@@ -1,35 +1,32 @@
 [package]
 authors = ["Johan Helsing <johanhelsing@gmail.com>"]
 categories = ["network-programming", "game-development", "wasm", "web-programming"]
-description = "Bevy asset loader that transparently supports loading over http(s)"
+description = "Implementations for http(s) asset sources for Bevy"
 edition = "2021"
 keywords = ["gamedev", "networking", "wasm", "bevy"]
 license = "MIT OR Apache-2.0"
 name = "bevy_web_asset"
 repository = "https://github.com/johanhelsing/bevy_web_asset"
-version = "0.6.0"
+version = "0.7.0"
 
 [dependencies]
-bevy = {version = "0.10", default-features = false, features = ["bevy_asset"]}
-
-# Copied from https://github.com/bevyengine/bevy/blob/main/crates/bevy_asset/Cargo.toml
-crossbeam-channel = "0.5.0"
-notify = "5.0.0"
+bevy = {version = "0.12", default-features = false, features = ["bevy_asset"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-surf = {version = "2.3", default-features = false, features = ["h1-client-rustls"]}
+isahc = "1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = {version = "0.3.22", default-features = false}
 js-sys = {version = "0.3", default-features = false}
 wasm-bindgen = {version = "0.2", default-features = false}
 wasm-bindgen-futures = "0.4"
-web-sys = {version = "0.3.22", default-features = false}
 
 [dev-dependencies]
-bevy = {version = "0.10", default-features = false, features = [
+bevy = {version = "0.12", default-features = false, features = [
   "bevy_asset",
   "bevy_core_pipeline",
   "bevy_sprite",
   "png",
+  "webgl2",
   "x11", # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
 ]}
