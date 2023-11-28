@@ -4,8 +4,11 @@ use std::path::{Path, PathBuf};
 
 use bevy::asset::io::{AssetReader, AssetReaderError, Reader};
 
-pub(super) enum WebAssetReader {
+/// Treats paths as urls to load assets from.
+pub enum WebAssetReader {
+    /// Unencrypted connections.
     Http,
+    /// Use TLS for setting up connections.
     Https,
 }
 
