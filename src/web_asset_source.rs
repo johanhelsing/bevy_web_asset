@@ -88,19 +88,20 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
+    use isahc::get_async;
     use isahc::http::StatusCode;
-    use isahc::{get_async, AsyncBody, Error, Response, ResponseFuture};
 
-    struct ContinuousPoll<'a>(ResponseFuture<'a>);
+    #[pin_project::pin_project]
+    struct ContinuousPoll<T>(#[pin] T);
 
-    impl<'a> Future for ContinuousPoll<'a> {
-        type Output = Result<Response<AsyncBody>, Error>;
+    impl<T: Future> Future for ContinuousPoll<T> {
+        type Output = T::Output;
 
-        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             // Always wake - blocks on single threaded executor.
             cx.waker().wake_by_ref();
 
-            Pin::new(&mut self.0).poll(cx)
+            self.project().0.poll(cx)
         }
     }
 

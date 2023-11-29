@@ -11,6 +11,7 @@ version = "0.7.1"
 
 [dependencies]
 bevy = {version = "0.12", default-features = false, features = ["bevy_asset"]}
+pin-project = "1.1.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 isahc = "1"
