@@ -88,8 +88,8 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
-    use isahc::get_async;
-    use isahc::http::StatusCode;
+    use bevy::asset::io::VecReader;
+    use surf::StatusCode;
 
     #[pin_project::pin_project]
     struct ContinuousPoll<T>(#[pin] T);
@@ -105,16 +105,38 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
         }
     }
 
-    let response = ContinuousPoll(get_async(path.to_str().unwrap()))
-        .await
-        .unwrap();
+    let str_path = path.to_str().ok_or_else(|| {
+        AssetReaderError::Io(io::Error::new(
+            io::ErrorKind::Other,
+            format!("non-utf8 path: {}", path.display()),
+        ))
+    })?;
+    let mut response = ContinuousPoll(surf::get(str_path)).await.map_err(|err| {
+        AssetReaderError::Io(io::Error::new(
+            io::ErrorKind::Other,
+            format!(
+                "unexpected status code {} while loading {}: {}",
+                err.status(),
+                path.display(),
+                err.into_inner(),
+            ),
+        ))
+    })?;
 
     match response.status() {
-        StatusCode::OK => Ok(Box::new(response.into_body()) as _),
-        StatusCode::NOT_FOUND => Err(AssetReaderError::NotFound(path)),
+        StatusCode::Ok => Ok(Box::new(VecReader::new(
+            ContinuousPoll(response.body_bytes())
+                .await
+                .map_err(|_| AssetReaderError::NotFound(path.to_path_buf()))?,
+        )) as _),
+        StatusCode::NotFound => Err(AssetReaderError::NotFound(path)),
         code => Err(AssetReaderError::Io(io::Error::new(
             io::ErrorKind::Other,
-            format!("unexpected status code {code}"),
+            format!(
+                "unexpected status code {} while loading {}",
+                code,
+                path.display()
+            ),
         ))),
     }
 }
