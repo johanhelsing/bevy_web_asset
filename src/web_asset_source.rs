@@ -74,10 +74,13 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
             Ok(reader)
         }
         404 => Err(AssetReaderError::NotFound(path)),
-        status => Err(AssetReaderError::Io(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Encountered unexpected HTTP status {status}"),
-        ))),
+        status => Err(AssetReaderError::Io(
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Encountered unexpected HTTP status {status}"),
+            )
+            .into(),
+        )),
     }
 }
 
@@ -106,21 +109,27 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
     }
 
     let str_path = path.to_str().ok_or_else(|| {
-        AssetReaderError::Io(io::Error::new(
-            io::ErrorKind::Other,
-            format!("non-utf8 path: {}", path.display()),
-        ))
+        AssetReaderError::Io(
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!("non-utf8 path: {}", path.display()),
+            )
+            .into(),
+        )
     })?;
     let mut response = ContinuousPoll(surf::get(str_path)).await.map_err(|err| {
-        AssetReaderError::Io(io::Error::new(
-            io::ErrorKind::Other,
-            format!(
-                "unexpected status code {} while loading {}: {}",
-                err.status(),
-                path.display(),
-                err.into_inner(),
-            ),
-        ))
+        AssetReaderError::Io(
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "unexpected status code {} while loading {}: {}",
+                    err.status(),
+                    path.display(),
+                    err.into_inner(),
+                ),
+            )
+            .into(),
+        )
     })?;
 
     match response.status() {
@@ -130,14 +139,17 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
                 .map_err(|_| AssetReaderError::NotFound(path.to_path_buf()))?,
         )) as _),
         StatusCode::NotFound => Err(AssetReaderError::NotFound(path)),
-        code => Err(AssetReaderError::Io(io::Error::new(
-            io::ErrorKind::Other,
-            format!(
-                "unexpected status code {} while loading {}",
-                code,
-                path.display()
-            ),
-        ))),
+        code => Err(AssetReaderError::Io(
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "unexpected status code {} while loading {}",
+                    code,
+                    path.display()
+                ),
+            )
+            .into(),
+        )),
     }
 }
 
