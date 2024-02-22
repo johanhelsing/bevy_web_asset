@@ -59,12 +59,10 @@ commands.spawn(SpriteBundle {
 
 I intend to support the latest bevy release in the `main` branch.
 
-Fixes against the Bevy `main` branch goes in the the `bevy-main` branch and are
-merged back into `main` whenever bevy is released.
-
 |bevy|bevy_web_asset|
 |----|--------------|
-|0.12|0.7, main     |
+|0.13|0.8, main     |
+|0.12|0.7           |
 |0.9 |0.5           |
 |0.8 |0.4           |
 |0.7 |0.3           |
