@@ -1,5 +1,4 @@
-use bevy::asset::io::PathStream;
-use bevy::utils::BoxedFuture;
+use bevy::{asset::io::PathStream, utils::ConditionalSendFuture};
 use std::path::{Path, PathBuf};
 
 use bevy::asset::io::{AssetReader, AssetReaderError, Reader};
@@ -157,29 +156,29 @@ impl AssetReader for WebAssetReader {
     fn read<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        Box::pin(get(self.make_uri(path)))
+    ) -> impl ConditionalSendFuture<Output = Result<Box<Reader<'a>>, AssetReaderError>> {
+        get(self.make_uri(path))
     }
 
     fn read_meta<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
-        Box::pin(get(self.make_meta_uri(path)))
+    ) -> impl ConditionalSendFuture<Output = Result<Box<Reader<'a>>, AssetReaderError>> {
+        get(self.make_meta_uri(path))
     }
 
-    fn is_directory<'a>(
+    async fn is_directory<'a>(
         &'a self,
         _path: &'a Path,
-    ) -> BoxedFuture<'a, Result<bool, AssetReaderError>> {
-        Box::pin(async { Ok(false) })
+    ) -> Result<bool, AssetReaderError> {
+        Ok(false)
     }
 
-    fn read_directory<'a>(
+    async fn read_directory<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<PathStream>, AssetReaderError>> {
-        Box::pin(async { Err(AssetReaderError::NotFound(self.make_uri(path))) })
+    ) -> Result<Box<PathStream>, AssetReaderError> {
+        Err(AssetReaderError::NotFound(self.make_uri(path)))
     }
 }
 
