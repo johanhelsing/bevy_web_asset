@@ -167,10 +167,7 @@ impl AssetReader for WebAssetReader {
         get(self.make_meta_uri(path))
     }
 
-    async fn is_directory<'a>(
-        &'a self,
-        _path: &'a Path,
-    ) -> Result<bool, AssetReaderError> {
+    async fn is_directory<'a>(&'a self, _path: &'a Path) -> Result<bool, AssetReaderError> {
         Ok(false)
     }
 
