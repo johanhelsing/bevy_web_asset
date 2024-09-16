@@ -21,15 +21,12 @@ impl WebAssetReader {
     }
 
     /// See [bevy::asset::io::get_meta_path]
-    fn make_meta_uri(&self, path: &Path) -> PathBuf {
+    fn make_meta_uri(&self, path: &Path) -> Option<PathBuf> {
         let mut uri = self.make_uri(path);
-        let mut extension = path
-            .extension()
-            .expect("asset paths must have extensions")
-            .to_os_string();
+        let mut extension = path.extension()?.to_os_string();
         extension.push(".meta");
         uri.set_extension(extension);
-        uri
+        Some(uri)
     }
 }
 
@@ -160,11 +157,13 @@ impl AssetReader for WebAssetReader {
         get(self.make_uri(path))
     }
 
-    fn read_meta<'a>(
-        &'a self,
-        path: &'a Path,
-    ) -> impl ConditionalSendFuture<Output = Result<Box<Reader<'a>>, AssetReaderError>> {
-        get(self.make_meta_uri(path))
+    async fn read_meta<'a>(&'a self, path: &'a Path) -> Result<Box<Reader<'a>>, AssetReaderError> {
+        match self.make_meta_uri(path) {
+            Some(uri) => get(uri).await,
+            None => Err(AssetReaderError::NotFound(
+                "source path has no extension".into(),
+            )),
+        }
     }
 
     async fn is_directory<'a>(&'a self, _path: &'a Path) -> Result<bool, AssetReaderError> {
@@ -210,6 +209,7 @@ mod tests {
         assert_eq!(
             WebAssetReader::Http
                 .make_meta_uri(Path::new("s3.johanhelsing.studio/dump/favicon.png"))
+                .expect("cannot create meta uri")
                 .to_str()
                 .unwrap(),
             "http://s3.johanhelsing.studio/dump/favicon.png.meta"
@@ -221,9 +221,18 @@ mod tests {
         assert_eq!(
             WebAssetReader::Https
                 .make_meta_uri(Path::new("s3.johanhelsing.studio/dump/favicon.png"))
+                .expect("cannot create meta uri")
                 .to_str()
                 .unwrap(),
             "https://s3.johanhelsing.studio/dump/favicon.png.meta"
+        );
+    }
+
+    #[test]
+    fn make_https_without_extension_meta_uri() {
+        assert_eq!(
+            WebAssetReader::Https.make_meta_uri(Path::new("s3.johanhelsing.studio/dump/favicon")),
+            None
         );
     }
 }
