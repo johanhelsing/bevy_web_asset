@@ -15,9 +15,7 @@ repository = "https://github.com/johanhelsing/bevy_web_asset"
 version = "0.9.0"
 
 [dependencies]
-bevy = { version = "0.14", default-features = false, features = [
-  "bevy_asset",
-] }
+bevy = { version = "0.14", default-features = false, features = ["bevy_asset"] }
 pin-project = "1.1.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -26,7 +24,13 @@ surf = { version = "2.3", default-features = false, features = [
 ] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { version = "0.3.67", default-features = false }
+web-sys = { version = "0.3.67", default-features = false, features = [
+  "Window",
+  "Request",
+  "Headers",
+  "RequestInit",
+  "RequestMode",
+] }
 js-sys = { version = "0.3", default-features = false }
 wasm-bindgen = { version = "0.2", default-features = false }
 wasm-bindgen-futures = "0.4"
@@ -37,6 +41,7 @@ bevy = { version = "0.14", default-features = false, features = [
   "bevy_core_pipeline",
   "bevy_sprite",
   "png",
+  "jpeg",
   "webgl2",
   "x11",                # GitHub Actions runners don't have libxkbcommon installed, so can't use Wayland
 ] }
