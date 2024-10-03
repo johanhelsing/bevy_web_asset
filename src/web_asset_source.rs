@@ -179,7 +179,6 @@ async fn get<'a>(
     shared: Arc<RwLock<WebAssetReaderDataInner>>,
 ) -> Result<Box<Reader<'a>>, AssetReaderError> {
     use std::io;
-    use std::time::Duration;
 
     use bevy::asset::io::VecReader;
     use bevy::tasks::AsyncComputeTaskPool;
@@ -225,7 +224,6 @@ async fn get<'a>(
             }
         })?;
 
-        dbg!(&response);
         let mut buf = vec![];
         let mut reader = response.into_reader();
         reader.read_to_end(&mut buf).map_err(|err| {
@@ -241,7 +239,6 @@ async fn get<'a>(
     });
 
     let result = blocking_task.await?;
-    dbg!(result.len());
     Ok(Box::new(VecReader::new(result)))
 }
 
