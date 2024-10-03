@@ -19,9 +19,8 @@ bevy = { version = "0.14", default-features = false, features = ["bevy_asset"] }
 pin-project = "1.1.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-surf = { version = "2.3", default-features = false, features = [
-  "h1-client-rustls",
-] }
+ureq = "2.10.1"
+bevy_tasks = { version = "*", features = ["multi_threaded"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.67", default-features = false, features = [
