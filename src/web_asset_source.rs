@@ -22,7 +22,42 @@ pub enum Protocol {
 /// Resource which stores headers, query and other settings for [`WebAssetReader`].
 #[derive(Resource, Debug, Default)]
 pub struct WebAssetReaderData {
-    pub data: Arc<RwLock<WebAssetReaderDataInner>>,
+    pub(crate) data: Arc<RwLock<WebAssetReaderDataInner>>,
+}
+
+impl WebAssetReaderData {
+    /// When true, this feature turns "test/example..png" into "test/example" while sending the request, but leaves individual dots alone.
+    pub fn set_fake_extensions(&self, state: bool) {
+        let mut w = self.data.write().unwrap();
+        w.fake_extensions = state;
+    }
+
+    /// Push a new header to be sent along every asset load. The same key can be pushed multiple times.
+    pub fn push_header(&self, key: impl ToString, value: impl ToString) {
+        let mut w = self.data.write().unwrap();
+        w.headers
+            .entry(key.to_string())
+            .or_insert_with(Vec::new)
+            .push(value.to_string());
+    }
+
+    /// Remove all headers
+    pub fn clear_headers(&self) {
+        let mut w = self.data.write().unwrap();
+        w.headers.clear();
+    }
+
+    /// Push a query parameter, which will be appended to the reqeust before its sent
+    pub fn push_query(&self, key: impl ToString, value: impl ToString) {
+        let mut w = self.data.write().unwrap();
+        w.query.insert(key.to_string(), value.to_string());
+    }
+
+    /// Remove all query params
+    pub fn clear_query(&self) {
+        let mut w = self.data.write().unwrap();
+        w.query.clear();
+    }
 }
 
 /// Struct which stores headers, query and other settings for [`WebAssetReader`].
