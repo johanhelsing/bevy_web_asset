@@ -325,7 +325,7 @@ mod tests {
     #[test]
     fn make_http_uri_no_fake() {
         assert_eq!(
-            new_reader(Protocol::Http, true)
+            new_reader(Protocol::Http, false)
                 .make_uri(Path::new("s3.johanhelsing.studio/dump/favicon..png"))
                 .to_str()
                 .unwrap(),
