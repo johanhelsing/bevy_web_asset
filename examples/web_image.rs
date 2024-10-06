@@ -6,7 +6,7 @@ fn main() {
         .add_plugins((
             // The web asset plugin must be inserted before the `AssetPlugin` so
             // that the AssetPlugin recognizes the new sources.
-            WebAssetPlugin,
+            WebAssetPlugin::default(),
             DefaultPlugins,
         ))
         .add_systems(Startup, setup)
@@ -18,7 +18,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn(SpriteBundle {
         // Simply use a url where you would normally use an asset folder relative path
-        texture: asset_server.load("https://s3.johanhelsing.studio/dump/favicon.png"),
+        texture: asset_server
+            .load("https://pixnio.com/free-images/2024/09/30/2024-09-30-09-05-06-960x640.jpg"), // no-attribution pixnio license
         ..default()
     });
 }

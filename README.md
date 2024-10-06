@@ -55,20 +55,30 @@ commands.spawn(SpriteBundle {
 });
 ```
 
+Supports adding headers and query parameters, specified initially when adding the plugin:
+
+```rust ignore
+WebAssetPlugin::default()
+    .enable_fake_extensions() // for URLs which don't have a file extension, add "..png" which won't be sent
+    .push_header("x-api-key", "somekey") // set a api key for all requests
+    .push_header("Accept", "application/octet-stream") // we want a binary file
+    .push_query("quality", "high"), // this appends ?quality=high to the actual requests
+```
+
 ## Bevy version support
 
 I intend to support the latest bevy release in the `main` branch.
 
-|bevy|bevy_web_asset|
-|----|--------------|
-|0.14|0.9, main     |
-|0.13|0.8           |
-|0.12|0.7           |
-|0.9 |0.5           |
-|0.8 |0.4           |
-|0.7 |0.3           |
-|0.6 |0.2           |
-|0.5 |0.1           |
+| bevy | bevy_web_asset |
+| ---- | -------------- |
+| 0.14 | 0.9, main      |
+| 0.13 | 0.8            |
+| 0.12 | 0.7            |
+| 0.9  | 0.5            |
+| 0.8  | 0.4            |
+| 0.7  | 0.3            |
+| 0.6  | 0.2            |
+| 0.5  | 0.1            |
 
 ## License
 
