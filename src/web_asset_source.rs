@@ -113,7 +113,9 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
             .into(),
         )
     })?;
-    let mut response = ContinuousPoll(surf::get(str_path)).await.map_err(|err| {
+
+    let client = surf::Client::new().with(surf::middleware::Redirect::default());
+    let mut response = ContinuousPoll(client.get(str_path)).await.map_err(|err| {
         AssetReaderError::Io(
             io::Error::new(
                 io::ErrorKind::Other,
