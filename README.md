@@ -61,7 +61,8 @@ I intend to support the latest bevy release in the `main` branch.
 
 |bevy|bevy_web_asset|
 |----|--------------|
-|0.14|0.9, main     |
+|0.15|0.10, main    |
+|0.14|0.9,          |
 |0.13|0.8           |
 |0.12|0.7           |
 |0.9 |0.5           |

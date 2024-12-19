@@ -81,7 +81,7 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+async fn get<'a>(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
     use std::future::Future;
     use std::io;
     use std::pin::Pin;
@@ -114,7 +114,7 @@ async fn get<'a>(path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
         )
     })?;
 
-    let client = surf::Client::new().with(surf::middleware::Redirect::default());
+    let client = surf::Client::new();
     let mut response = ContinuousPoll(client.get(str_path)).await.map_err(|err| {
         AssetReaderError::Io(
             io::Error::new(
@@ -155,11 +155,11 @@ impl AssetReader for WebAssetReader {
     fn read<'a>(
         &'a self,
         path: &'a Path,
-    ) -> impl ConditionalSendFuture<Output = Result<Box<Reader<'a>>, AssetReaderError>> {
+    ) -> impl ConditionalSendFuture<Output = Result<Box<dyn Reader>, AssetReaderError>> {
         get(self.make_uri(path))
     }
 
-    async fn read_meta<'a>(&'a self, path: &'a Path) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    async fn read_meta<'a>(&'a self, path: &'a Path) -> Result<Box<dyn Reader>, AssetReaderError> {
         match self.make_meta_uri(path) {
             Some(uri) => get(uri).await,
             None => Err(AssetReaderError::NotFound(
