@@ -114,7 +114,12 @@ async fn get<'a>(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
         )
     })?;
 
+    #[cfg(not(feature = "redirect"))]
     let client = surf::Client::new();
+
+    #[cfg(feature = "redirect")]
+    let client = surf::Client::new().with(surf::middleware::Redirect::default());
+
     let mut response = ContinuousPoll(client.get(str_path)).await.map_err(|err| {
         AssetReaderError::Io(
             io::Error::new(

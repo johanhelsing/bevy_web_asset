@@ -20,6 +20,10 @@ bevy = { version = "0.15", default-features = false, features = [
 ] }
 pin-project = "1.1.5"
 
+[features]
+default = ["redirect"]
+redirect = []  # enables surf::middleware::Redirect
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 surf = { version = "2.3", default-features = false, features = [
   "h1-client-rustls",
