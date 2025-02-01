@@ -16,6 +16,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo check --all-targets
 
+  check-wasm:
+    name: Check wasm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          target: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --target wasm32-unknown-unknown --all-targets
+
   test:
     runs-on: ubuntu-latest
     steps:

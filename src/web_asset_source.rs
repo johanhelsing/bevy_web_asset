@@ -81,7 +81,7 @@ async fn get(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn get<'a>(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
+async fn get(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
     use std::future::Future;
     use std::io;
     use std::pin::Pin;
