@@ -6,7 +6,7 @@ fn main() {
         .add_plugins((
             // The web asset plugin must be inserted before the `AssetPlugin` so
             // that the AssetPlugin recognizes the new sources.
-            WebAssetPlugin,
+            WebAssetPlugin::default(),
             DefaultPlugins,
         ))
         .add_systems(Startup, setup)
