@@ -85,7 +85,7 @@ impl WebAssetReaderConnection {
 }
 
 #[cfg(target_arch = "wasm32")]
-async fn get<'a>(path: PathBuf, _: Option<PathBuf>) -> Result<Box<Reader<'a>>, AssetReaderError> {
+async fn get(path: PathBuf, _: Option<PathBuf>) -> Result<Box<dyn Reader>, AssetReaderError> {
     use bevy::asset::io::VecReader;
     use js_sys::Uint8Array;
     use wasm_bindgen::JsCast;
@@ -135,7 +135,7 @@ async fn get<'a>(path: PathBuf, _: Option<PathBuf>) -> Result<Box<Reader<'a>>, A
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn get<'a>(
+async fn get(
     path: PathBuf,
     cache_path: Option<PathBuf>,
 ) -> Result<Box<dyn Reader>, AssetReaderError> {
