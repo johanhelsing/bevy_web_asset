@@ -1,4 +1,4 @@
-use bevy::{asset::io::PathStream, utils::ConditionalSendFuture};
+use bevy::{asset::io::PathStream, tasks::ConditionalSendFuture};
 use std::path::{Path, PathBuf};
 
 use bevy::asset::io::{AssetReader, AssetReaderError, Reader};
