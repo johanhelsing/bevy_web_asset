@@ -12,13 +12,13 @@ keywords = ["gamedev", "networking", "wasm", "bevy"]
 license = "MIT OR Apache-2.0"
 name = "bevy_web_asset"
 repository = "https://github.com/johanhelsing/bevy_web_asset"
-version = "0.10.1"
+version = "0.11.0"
 
 [dependencies]
-bevy = { version = "0.15", default-features = false, features = [
+bevy = { version = "0.16", default-features = false, features = [
   "bevy_asset",
 ] }
-pin-project = "1.1.5"
+pin-project = "1.1"
 
 [features]
 default = ["redirect"]
@@ -30,15 +30,16 @@ surf = { version = "2.3", default-features = false, features = [
 ] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { version = "0.3.67", default-features = false }
+web-sys = { version = "0.3", default-features = false }
 js-sys = { version = "0.3", default-features = false }
 wasm-bindgen = { version = "0.2", default-features = false }
 wasm-bindgen-futures = "0.4"
 
 [dev-dependencies]
-bevy = { version = "0.15", default-features = false, features = [
+bevy = { version = "0.16", default-features = false, features = [
   "bevy_asset",
   "bevy_core_pipeline",
+  "bevy_log",
   "bevy_sprite",
   "bevy_window",        # https://github.com/bevyengine/bevy/issues/16568
   "png",
