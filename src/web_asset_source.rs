@@ -80,6 +80,56 @@ async fn get(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn get_with_request_init<'a>(path: PathBuf, request_init: web_sys::RequestInit) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    use bevy::asset::io::VecReader;
+    use js_sys::Uint8Array;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_futures::JsFuture;
+    use web_sys::Response;
+
+    fn js_value_to_err<'a>(
+        context: &'a str,
+    ) -> impl FnOnce(wasm_bindgen::JsValue) -> std::io::Error + 'a {
+        move |value| {
+            let message = match js_sys::JSON::stringify(&value) {
+                Ok(js_str) => format!("Failed to {context}: {js_str}"),
+                Err(_) => {
+                    format!(
+                        "Failed to {context} and also failed to stringify the JSValue of the error"
+                    )
+                }
+            };
+
+            std::io::Error::new(std::io::ErrorKind::Other, message)
+        }
+    }
+
+    let window = web_sys::window().unwrap();
+    let resp_value = JsFuture::from(window.fetch_with_str_and_init(path.to_str().unwrap(), &request_init))
+        .await
+        .map_err(js_value_to_err("fetch path"))?;
+    let resp = resp_value
+        .dyn_into::<Response>()
+        .map_err(js_value_to_err("convert fetch to Response"))?;
+    match resp.status() {
+        200 => {
+            let data = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
+            let bytes = Uint8Array::new(&data).to_vec();
+            let reader: Box<Reader> = Box::new(VecReader::new(bytes));
+            Ok(reader)
+        }
+        404 => Err(AssetReaderError::NotFound(path)),
+        status => Err(AssetReaderError::Io(
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Encountered unexpected HTTP status {status}"),
+            )
+            .into(),
+        )),
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 async fn get(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
     use std::future::Future;
@@ -149,6 +199,70 @@ async fn get(path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
                     "unexpected status code {} while loading {}",
                     code,
                     path.display()
+                ),
+            )
+            .into(),
+        )),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn get_with_request_init<'a>(request_init: surf::RequestBuilder) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    use std::{future::Future, str::FromStr};
+    use std::io;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+
+    use bevy::asset::io::VecReader;
+    use surf::StatusCode;
+
+    #[pin_project::pin_project]
+    struct ContinuousPoll<T>(#[pin] T);
+
+    impl<T: Future> Future for ContinuousPoll<T> {
+        type Output = T::Output;
+
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            // Always wake - blocks on single threaded executor.
+            cx.waker().wake_by_ref();
+
+            self.project().0.poll(cx)
+        }
+    }
+
+    let request = request_init.build();
+    let path = request.url().clone();
+    let path_buf = PathBuf::from_str(path.as_str()).unwrap();
+
+    let mut response = ContinuousPoll(surf::client().send(request)).await.map_err(|err| {
+        AssetReaderError::Io(
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "unexpected status code {} while loading {}: {}",
+                    err.status(),
+                    path,
+                    err.into_inner(),
+                ),
+            )
+            .into(),
+        )
+    })?;
+
+    match response.status() {
+        StatusCode::Ok => Ok(Box::new(VecReader::new(
+            ContinuousPoll(response.body_bytes())
+                .await
+                .map_err(|_| AssetReaderError::NotFound(path_buf))?,
+        )) as _),
+        StatusCode::NotFound => Err(AssetReaderError::NotFound(path_buf)),
+        code => Err(AssetReaderError::Io(
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "unexpected status code {} while loading {}",
+                    code,
+                    path
                 ),
             )
             .into(),
