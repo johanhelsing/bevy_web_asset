@@ -18,11 +18,14 @@ version = "0.11.0"
 bevy = { version = "0.16", default-features = false, features = [
   "bevy_asset",
 ] }
-pin-project = "1.1"
+pin-project = "1.1.5"
+directories = {version = "5.0.1", optional = true}
+slug = {version = "0.1.6", optional = true}
 
 [features]
 default = ["redirect"]
 redirect = []  # enables surf::middleware::Redirect
+cache_asset = ["directories", "slug"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 surf = { version = "2.3", default-features = false, features = [
