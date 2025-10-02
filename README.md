@@ -1,5 +1,9 @@
 # Bevy Web Asset
 
+## Project Upstreamed to Bevy
+
+[As of Bevy 0.17, `bevy_web_asset` is now part of Bevy itself](https://bevy.org/news/bevy-0-17/#web-assets).
+
 [![crates.io](https://img.shields.io/crates/v/bevy_web_asset.svg)](https://crates.io/crates/bevy_web_asset)
 ![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)
 [![crates.io](https://img.shields.io/crates/d/bevy_web_asset.svg)](https://crates.io/crates/bevy_web_asset)
